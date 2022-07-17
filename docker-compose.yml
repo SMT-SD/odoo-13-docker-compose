@@ -16,9 +16,11 @@ services:
     user: root
     depends_on:
       - db
-    ports:
-      - "10013:8069"
-      - "20013:8072" # live chat
+    #ports:
+    #  - "10013:8069"
+    #  - "20013:8072" # live chat
+    expose:
+      - "8069"
     tty: true
     command: --
 #    command: odoo scaffold /mnt/extra-addons/test_module
@@ -33,3 +35,31 @@ services:
       - ./addons:/mnt/extra-addons
       - ./etc:/etc/odoo
     restart: always             # run as a service
+
+  haproxy:
+    image: eeacms/haproxy
+    restart: always
+    depends_on:
+    - odoo13
+    ports:
+    - "9002:5000"
+    - "9003:1936"
+    environment:
+      BACKENDS: "odoo13:8069"
+      DNS_ENABLED: "true"
+      LOG_LEVEL: "info"
+      BACKENDS_PORT: 9002
+      STATS_AUTH : admin:YbrS9eP4!j
+      #LOGGING: :9002
+      #VIRTUAL_HOST: 
+      #LETSENCRYPT_HOST:
+      #VIRTUAL_PORT: 1936
+      #BACKEND_NAME: "web"
+      #FRONTEND_NAME: "db"
+      #VIRTUAL_HOST : manarah.rm.org.sa
+      #VIRTUAL_PORT : 5000
+      #LETSENCRYPT_HOST : manarah.rm.org.sa
+      #LETSENCRYPT_DNS_MODE : dns-01-challenge
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+
